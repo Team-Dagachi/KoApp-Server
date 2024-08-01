@@ -1,4 +1,5 @@
-const {Sequelize} = require("sequelize");
+const { Sequelize } = require("sequelize");
+const bcrypt = require("bcrypt");
 
 class User extends Sequelize.Model {
   static initiate(sequelize) {
@@ -8,7 +9,7 @@ class User extends Sequelize.Model {
           type: Sequelize.BIGINT,
           allowNull: false,
           primaryKey: true,
-          autoIncrement: true
+          autoIncrement: true,
         },
         last_name: {
           type: Sequelize.STRING(50),
@@ -27,12 +28,12 @@ class User extends Sequelize.Model {
           allowNull: false,
           unique: true,
         },
-        language:{
-          type: Sequelize.ENUM('VN','CN','KR'),
+        language: {
+          type: Sequelize.ENUM("VN", "CN", "KR"),
           allowNull: false,
         },
-        user_type:{
-          type: Sequelize.ENUM('S','T'),
+        user_type: {
+          type: Sequelize.ENUM("S", "T"),
           allowNull: false,
         },
         score: {
@@ -43,8 +44,8 @@ class User extends Sequelize.Model {
         picture_url: {
           type: Sequelize.STRING(255),
           allowNull: true,
-      }
-    },
+        },
+      },
       {
         sequelize,
         timestamps: true,
@@ -54,6 +55,21 @@ class User extends Sequelize.Model {
         paranoid: false,
         charset: "utf8",
         collate: "utf8_general_ci",
+        hooks: {
+          // 비밀번호를 저장하기 전에 해싱
+          beforeCreate: async (user) => {
+            if (user.user_pwd) {
+              const salt = await bcrypt.genSalt(10);
+              user.user_pwd = await bcrypt.hash(user.user_pwd, salt);
+            }
+          },
+          beforeUpdate: async (user) => {
+            if (user.user_pwd) {
+              const salt = await bcrypt.genSalt(10);
+              user.user_pwd = await bcrypt.hash(user.user_pwd, salt);
+            }
+          },
+        },
       }
     );
   }

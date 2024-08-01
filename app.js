@@ -25,11 +25,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // 라우트 설정
-const indexRouter = require('./routes/index'); // 라우터 가져오기
-const apiRouter = require('./routes/api');     // 라우터 가져오기
+const indexRouter = require('./routes/index'); 
+const userRouter = require('./routes/users');
 
-app.use('/', indexRouter); // 기본 라우트 연결
-app.use('/api', apiRouter); // API 라우트 연결
+// 라우트 연결
+app.use('/', indexRouter); 
+app.use('/api/users', userRouter);
 
 // 404 에러 처리
 app.use((req, res, next) => {
