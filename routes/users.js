@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController');
+const users = require('../controllers/users');
 
 // 회원가입
-router.post('/signup', userController.signup);
+router.post('/signup', users.signup);
 
 // 이메일 중복 검사
-router.get('/check-email', userController.checkEmail);
+router.get('/check-email', users.checkEmail);
+
+// 로그인
+router.post('/login', users.login);
 
 module.exports = router;

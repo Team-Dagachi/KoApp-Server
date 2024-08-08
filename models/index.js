@@ -5,7 +5,7 @@ const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 
 // 모델 불러오기
-const User = require("./users");
+const User = require("./User");
 
 const db = {};
 

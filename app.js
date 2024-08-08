@@ -1,8 +1,10 @@
-require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const app = express();
 
@@ -25,12 +27,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // 라우트 설정
-const indexRouter = require('./routes/index'); 
-const userRouter = require('./routes/users');
+const users = require('./routes/users');
 
 // 라우트 연결
-app.use('/', indexRouter); 
-app.use('/api/users', userRouter);
+app.use('/users', users);
 
 // 404 에러 처리
 app.use((req, res, next) => {
@@ -41,7 +41,7 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
     message: err.message,
-    error: process.env.NODE_ENV !== 'production' ? err : {},
+    stack: process.env.NODE_ENV !== 'production' ? err.stack : {}, // 개발 환경에서만 스택 트레이스 제공
   });
 });
 
