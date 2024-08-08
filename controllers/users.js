@@ -12,7 +12,7 @@ exports.signup = async (req, res) => {
 
     // 필수 입력값 확인
     if (!last_name || !first_name || !user_pwd || !email || !language || !user_type) {
-      return res.status(400).json({ error: '필수 입력값이 누락되었습니다.' });
+      return res.status(400).json({ message: '필수 입력값이 누락되었습니다.' });
     }
 
     // 비밀번호 해싱
@@ -35,5 +35,30 @@ exports.signup = async (req, res) => {
   } catch (error) {
     console.error('Error registering user:', error);
     return res.status(500).json({ message: '회원가입 중 오류가 발생했습니다.' });
+  }
+};
+
+// 이메일 중복 검사 로직
+exports.checkEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    // 이메일 입력 확인
+    if (!email) {
+      return res.status(400).json({ error: '이메일을 입력해주세요.' });
+    }
+
+    // 데이터베이스에서 이메일 중복 여부 확인
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      // 이메일이 이미 존재하는 경우
+      return res.status(409).json({ error: '이미 존재하는 이메일입니다.' });
+    }
+
+    // 이메일이 존재하지 않는 경우
+    return res.status(200).json({ error: '사용 가능한 이메일입니다.' });
+  } catch (error) {
+    console.error('Error checking email:', error);
+    return res.status(500).json({ error: '이메일 확인 중 오류가 발생했습니다.' });
   }
 };

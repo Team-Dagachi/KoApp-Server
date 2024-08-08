@@ -8,7 +8,4 @@ router.post('/signup', users.signup);
 // 이메일 중복 검사
 router.get('/check-email', users.checkEmail);
 
-// 로그인
-router.post('/login', users.login);
-
 module.exports = router;
