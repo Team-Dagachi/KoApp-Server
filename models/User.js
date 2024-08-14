@@ -11,6 +11,14 @@ class User extends Sequelize.Model {
           primaryKey: true,
           autoIncrement: true,
         },
+        user_type: {
+          type: Sequelize.ENUM("S", "T"),
+          allowNull: false,
+        },
+        language: {
+          type: Sequelize.ENUM("VN", "CN", "KR"),
+          allowNull: false,
+        },
         last_name: {
           type: Sequelize.STRING(50),
           allowNull: false,
@@ -28,17 +36,13 @@ class User extends Sequelize.Model {
           allowNull: false,
           unique: true,
         },
-        language: {
-          type: Sequelize.ENUM("VN", "CN", "KR"),
-          allowNull: false,
-        },
-        user_type: {
-          type: Sequelize.ENUM("S", "T"),
-          allowNull: false,
+        phone_num: {
+          type: Sequelize.STRING(12),
+          allowNull: true,
         },
         score: {
           type: Sequelize.INTEGER,
-          allowNull: false,
+          allowNull: true,
           defaultValue: 0,
         },
         picture_url: {
