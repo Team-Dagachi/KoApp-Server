@@ -11,4 +11,7 @@ router.get('/check-email', users.checkEmail);
 // 로그인
 router.post('/login', users.login);
 
+// 이메일 찾기
+router.get('/find-email', users.findEmail);
+
 module.exports = router;

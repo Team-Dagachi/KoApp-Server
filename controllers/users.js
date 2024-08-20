@@ -5,7 +5,15 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-// 회원가입 로직
+const createToken = (user) => {
+  return jwt.sign(
+    { user_id: user.user_id },
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+};
+
+// 회원가입
 exports.signup = async (req, res) => {
   try {
     const { user_type, language, last_name, first_name, user_pwd, confirmPwd, email, phone_num } = req.body;
@@ -41,6 +49,8 @@ exports.signup = async (req, res) => {
       phone_num
     });
 
+     const token = createToken(newUser);
+
     return res.status(201).json({
       message: '회원가입 완료',
       userId: newUser.user_id,
@@ -51,7 +61,7 @@ exports.signup = async (req, res) => {
   }
 };
 
-// 이메일 중복 검사 로직
+// 이메일 중복 검사
 exports.checkEmail = async (req, res) => {
   try {
     const { email } = req.query;
@@ -85,7 +95,7 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({ message: '이메일이 존재하지 않습니다.' });
-    }
+    } 
 
     // 비밀번호 검증
     const isPasswordValid = await bcrypt.compare(user_pwd, user.user_pwd);
@@ -93,16 +103,35 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: '잘못된 비밀번호입니다.' });
     }
 
-    // JWT 토큰 발급
-    const token = jwt.sign(
-      { user_id: user.user_id }, 
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
+    const token = createToken(user);
+    
     res.json({ message: '로그인 성공', token });
   } catch (error) {
     console.error('login error', error);
     res.status(500).json({ message: '로그인 중 서버 오류가 발생했습니다.' });
+  }
+};
+
+// 이메일 찾기
+exports.findEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ message: '이메일을 입력하세요.' });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ message: '미가입된 이메일입니다.' });
+    }
+
+    return res.status(200).json({ 
+      message: '회원가입된 이메일입니다.',
+      email: user.email 
+    });
+  } catch (error) {
+    console.error('Error finding email:', error);
+    return res.status(500).json({ message: '이메일 찾기 중 오류가 발생했습니다.' });
   }
 };
