@@ -192,31 +192,61 @@ exports.passwordCode = async (req, res) => {
 
   } catch (error) {
     console.error('Error processing verification request:', error);
-    return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    return res.status(500).json({ message: '인증 코드 요청 중 서버 오류가 발생했습니다.' });
   }
 };
 
 // 비밀번호 찾기 - 이메일 인증 코드 검증
-exports.verifyCode = (req, res) => {
+exports.verifyCode = async (req, res) => {
   try {
-    const { verificationCode, token } = req.body;
+    const { email, verificationCode } = req.body;
 
-    if (!verificationCode || !token) {
-      return res.status(400).json({ message: '필수 입력값이 누락되었습니다.' });
+    const user = await User.findOne({ where: { email } });
+
+    if (user.verificationCode !== verificationCode) {
+      return res.status(400).json({ status: 400, message: '인증 코드가 일치하지 않습니다.' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return res.status(200).json({
+      message: '인증에 성공했습니다.',
+      data: { email: user.email }
+    });
 
-    if (decoded.verificationCode === verificationCode) {
-      return res.status(200).json({ message: '인증에 성공했습니다.' });
-    } else {
-      return res.status(400).json({ message: '인증코드가 일치하지 않습니다.' });
-    }
   } catch (error) {
+    console.error('Error verifying code:', error);
+    
     if (error.name === 'TokenExpiredError') {
-      return res.status(400).json({ message: '다시 인증을 요청해주세요.' });
+      return res.status(400).json({ status: 400, message: '다시 인증을 요청해주세요.' });
     } else {
-      return res.status(400).json({ message: '유효하지 않은 요청입니다.' });
+      return res.status(400).json({ status: 400, message: '유효하지 않은 요청입니다.' });
     }
+  }
+};
+
+// 비밀번호 재설정
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, newPwd, confirmPwd } = req.body;
+
+    if (newPwd.length > 20 || newPwd.length < 8) {
+      return res.status(400).json({ message: '비밀번호는 8자 이상 20자 이하로 입력해야 합니다.' });
+    }
+
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[.!@#$%])[A-Za-z\d.!@#$%]{8,20}$/;
+    if (!passwordRegex.test(newPwd)) {
+      return res.status(400).json({ message: '영문, 숫자, 특수문자를 포함해야 합니다.' });
+    }
+
+    if (newPwd !== confirmPwd) {
+      return res.status(400).json({ message: '비밀번호와 비밀번호 확인이 일치하지 않습니다.' });
+    }
+
+    user.user_pwd = newPwd;
+    await user.save();
+
+    return res.status(200).json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return res.status(500).json({ message: '비밀번호 재설정 중 서버 오류가 발생했습니다.' });
   }
 };

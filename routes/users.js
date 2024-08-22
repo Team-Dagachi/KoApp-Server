@@ -20,4 +20,7 @@ router.post('/password-code', users.passwordCode);
 // 비밀번호 찾기 - 이메일 인증코드 검증
 router.post('/verify-code', users.verifyCode);
 
+// 비밀번호 재설정
+router.post('/reset-password', users.resetPassword);
+
 module.exports = router;
