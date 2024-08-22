@@ -2,6 +2,8 @@ const { User } = require('../models');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto'); 
 
 dotenv.config();
 
@@ -34,7 +36,7 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ message: '영문, 숫자, 특수문자를 포함해야 합니다.' });
     }
 
-    if (user_pwd !== confirmPassword) {
+    if (user_pwd !== confirmPwd) {
       return res.status(400).json({ message: '비밀번호와 비밀번호 확인이 일치하지 않습니다.' });
     }
 
@@ -133,5 +135,60 @@ exports.findEmail = async (req, res) => {
   } catch (error) {
     console.error('Error finding email:', error);
     return res.status(500).json({ message: '이메일 찾기 중 오류가 발생했습니다.' });
+  }
+};
+
+// 이메일 전송을 위한 Nodemailer 설정
+const transporter = nodemailer.createTransport({
+  service: 'Gmail',
+  auth: {
+    user: process.env.EMAIL_USER, 
+    pass: process.env.EMAIL_PASS 
+  }
+});
+
+// 비밀번호 찾기 - 이메일 인증코드 요청
+exports.passwordCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: '입력된 이메일이 올바르지 않아요.' });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ message: '미가입된 이메일입니다.' });
+    }
+
+    // 5자리 랜덤 인증코드 생성
+    const verificationCode = crypto.randomInt(10000, 99999).toString();
+
+    const token = jwt.sign({ verificationCode }, process.env.JWT_SECRET, { expiresIn: '5m' });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'KOAPP 인증 코드 요청',
+      text: `KOAPP 인증코드는 ${verificationCode}입니다. 이 코드는 5분 동안 유효합니다.`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+        return res.status(500).json({ message: '인증코드 전송에 실패했습니다.' });
+      } else {
+        console.log('Email sent:', info.response);
+        return res.status(200).json({ 
+          message: '이메일로 인증 코드를 전송했습니다.',
+          token
+        });
+      }
+    });
+
+  } catch (error) {
+    console.error('Error processing verification request:', error);
+    return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
