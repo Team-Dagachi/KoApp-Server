@@ -55,8 +55,10 @@ exports.signup = async (req, res) => {
 
     return res.status(201).json({
       message: '회원가입 완료',
-      userId: newUser.user_id,
-      token: token
+      data: {
+        userId: newUser.user_id,
+        token: token
+      }
     });
   } catch (error) {
     console.error('Error registering user:', error);
@@ -108,10 +110,10 @@ exports.login = async (req, res) => {
 
     const token = createToken(user);
     
-    res.json({ message: '로그인 성공', token });
+    return res.json({ message: '로그인 성공', data: { token } });
   } catch (error) {
     console.error('login error', error);
-    res.status(500).json({ message: '로그인 중 서버 오류가 발생했습니다.' });
+    return res.status(500).json({ message: '로그인 중 서버 오류가 발생했습니다.' });
   }
 };
 
@@ -131,7 +133,7 @@ exports.findEmail = async (req, res) => {
 
     return res.status(200).json({ 
       message: '회원가입된 이메일입니다.',
-      email: user.email 
+      data: { email: user.email }
     });
   } catch (error) {
     console.error('Error finding email:', error);
@@ -183,7 +185,7 @@ exports.passwordCode = async (req, res) => {
         console.log('Email sent:', info.response);
         return res.status(200).json({ 
           message: '이메일로 인증 코드를 전송했습니다.',
-          token
+          data: { token }
         });
       }
     });
