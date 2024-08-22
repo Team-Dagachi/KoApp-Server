@@ -207,9 +207,12 @@ exports.verifyCode = async (req, res) => {
       return res.status(400).json({ status: 400, message: '인증 코드가 일치하지 않습니다.' });
     }
 
+    // 인증 성공 시 JWT 토큰 발급
+    const resetToken = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
     return res.status(200).json({
       message: '인증에 성공했습니다.',
-      data: { email: user.email }
+      data: { resetToken }
     });
 
   } catch (error) {
@@ -226,7 +229,11 @@ exports.verifyCode = async (req, res) => {
 // 비밀번호 재설정
 exports.resetPassword = async (req, res) => {
   try {
-    const { email, newPwd, confirmPwd } = req.body;
+    const { resetToken, newPwd, confirmPwd } = req.body;
+    
+    // 토큰 검증
+    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    const user = await User.findOne({ where: { user_id: decoded.user_id } });
 
     if (newPwd.length > 20 || newPwd.length < 8) {
       return res.status(400).json({ message: '비밀번호는 8자 이상 20자 이하로 입력해야 합니다.' });
