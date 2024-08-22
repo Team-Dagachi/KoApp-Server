@@ -51,11 +51,12 @@ exports.signup = async (req, res) => {
       phone_num
     });
 
-     const token = createToken(newUser);
+    const token = createToken(newUser);
 
     return res.status(201).json({
       message: '회원가입 완료',
       userId: newUser.user_id,
+      token: token
     });
   } catch (error) {
     console.error('Error registering user:', error);
@@ -190,5 +191,30 @@ exports.passwordCode = async (req, res) => {
   } catch (error) {
     console.error('Error processing verification request:', error);
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+// 비밀번호 찾기 - 이메일 인증 코드 검증
+exports.verifyCode = (req, res) => {
+  try {
+    const { verificationCode, token } = req.body;
+
+    if (!verificationCode || !token) {
+      return res.status(400).json({ message: '필수 입력값이 누락되었습니다.' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.verificationCode === verificationCode) {
+      return res.status(200).json({ message: '인증에 성공했습니다.' });
+    } else {
+      return res.status(400).json({ message: '인증코드가 일치하지 않습니다.' });
+    }
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(400).json({ message: '다시 인증을 요청해주세요.' });
+    } else {
+      return res.status(400).json({ message: '유효하지 않은 요청입니다.' });
+    }
   }
 };

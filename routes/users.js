@@ -17,4 +17,7 @@ router.get('/find-email', users.findEmail);
 // 비밀번호 찾기 - 이메일 인증코드 요청
 router.post('/password-code', users.passwordCode);
 
+// 비밀번호 찾기 - 이메일 인증코드 검증
+router.post('/verify-code', users.verifyCode);
+
 module.exports = router;
