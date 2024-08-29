@@ -1,5 +1,4 @@
 const { TodayWord, LearnedWord } = require('../models');
-const dotenv = require('dotenv');
 const Op = Sequelize.Op;
 
 // 오늘의 어휘 1개 조회
@@ -45,6 +44,58 @@ exports.getTodayWord = async (req, res) => {
       return res.status(500).json({
           status: 500,
           message: '서버 에러가 발생했습니다.'
+      });
+  }
+};
+
+// 오늘의 어휘 획득
+exports.addLearnedWord = async (req, res) => {
+  try {
+      const userId = req.user.user_id;
+      const { wordExpression } = req.body;
+
+      // 어휘 표현에 해당하는 단어를 TodayWord에서 찾기
+      const word = await TodayWord.findOne({
+          where: { wordExpression }
+      });
+
+      if (!word) {
+          return res.status(404).json({
+              status: 404,
+              message: '해당 어휘를 찾을 수 없습니다.',
+          });
+      }
+
+      // 이미 학습한 어휘인지 확인
+      const alreadyLearned = await LearnedWord.findOne({
+          where: {
+              user_id: userId,
+              word_id: word.word_id
+          }
+      });
+
+      if (alreadyLearned) {
+          return res.status(400).json({
+              status: 400,
+              message: '이미 학습한 어휘입니다.',
+          });
+      }
+
+      // 학습한 어휘로 저장
+      await LearnedWord.create({
+          user_id: userId,
+          word_id: word.word_id
+      });
+
+      return res.status(201).json({
+          status: 201,
+          message: '오늘의 어휘 획득 성공',
+      });
+  } catch (error) {
+      console.error('Error adding learned word:', error);
+      return res.status(500).json({
+          status: 500,
+          message: '서버 에러가 발생했습니다.',
       });
   }
 };
