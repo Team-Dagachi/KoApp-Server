@@ -27,10 +27,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // 라우트 설정
-const users = require('./routes/users');
+const userRoutes = require('./routes/users');
+const homeRoutes = require('./routes/home');
 
 // 라우트 연결
-app.use('/users', users);
+app.use('/users', userRoutes);
+app.use('/home', homeRoutes);
 
 // 404 에러 처리
 app.use((req, res, next) => {
