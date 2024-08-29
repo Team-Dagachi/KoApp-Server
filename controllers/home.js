@@ -99,3 +99,42 @@ exports.addLearnedWord = async (req, res) => {
       });
   }
 };
+
+// 학습한 어휘 리스트 조회
+exports.getLearnedWords = async (req, res) => {
+  try {
+      const userId = req.user.user_id;
+      
+      const learnedWords = await LearnedWord.findAll({
+          where: {
+              user_id: userId
+          },
+          include: [{
+              model: TodayWord,
+              attributes: ['grade', 'part', 'wordIcon', 'word', 'wordExpression']
+          }]
+      });
+
+      // DTO 형태로 응답 데이터 구성
+      const learnedWordsDTO = learnedWords.map(learnedWord => ({
+          grade: learnedWord.TodayWord.grade,
+          part: learnedWord.TodayWord.part,
+          wordIcon: learnedWord.TodayWord.wordIcon,
+          word: learnedWord.TodayWord.word,
+          wordExpression: learnedWord.TodayWord.wordExpression
+      }));
+
+      return res.status(200).json({
+          status: 200,
+          message: '학습한 어휘 리스트 조회 성공',
+          data: learnedWordsDTO
+      });
+  } catch (error) {
+      console.error('Error fetching learned words:', error);
+      return res.status(500).json({
+          status: 500,
+          message: '서버 에러가 발생했습니다.',
+          data: null
+      });
+  }
+};

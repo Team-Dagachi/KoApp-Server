@@ -9,4 +9,7 @@ router.get('/today-words/:word_id', authenticateToken, home.getTodayWord);
 // 오늘의 어휘 획득
 router.post('/learned-words', authenticateToken, home.addLearnedWord);
 
+// 학습한 어휘 리스트 조회
+router.get('/learned-words', authenticateToken, home.getLearnedWords);
+
 module.exports = router;
