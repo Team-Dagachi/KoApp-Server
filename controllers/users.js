@@ -256,3 +256,59 @@ exports.resetPassword = async (req, res) => {
     return res.status(500).json({ message: '비밀번호 재설정 중 서버 오류가 발생했습니다.' });
   }
 };
+
+// 내 정보 조회
+exports.getUserProfile = async (req, res) => {
+  const { user_id } = req.params;
+
+  try {
+      const user = await User.findByPk(user_id, {
+          attributes: ['last_name', 'first_name', 'eucalyptus_score']
+      });
+
+      if (!user) {
+          return res.status(404).json({
+              status: 404,
+              message: '사용자를 찾을 수 없습니다.',
+              data: null
+          });
+      }
+
+      // 유칼립투스 등급 및 진행률 계산
+      let rank = 0;
+      let progressPercentage = 0;
+
+      if (user.eucalyptus_score < 100) {
+          rank = 1;
+          progressPercentage = Math.floor((user.eucalyptus_score / 99) * 100);
+      } else if (user.eucalyptus_score < 500) {
+          rank = 2;
+          progressPercentage = Math.floor(((user.eucalyptus_score - 100) / 399) * 100);
+      } else if (user.eucalyptus_score < 1500) {
+          rank = 3;
+          progressPercentage = Math.floor(((user.eucalyptus_score - 500) / 999) * 100);
+      } else if (user.eucalyptus_score < 2500) {
+          rank = 4;
+          progressPercentage = Math.floor(((user.eucalyptus_score - 1500) / 999) * 100);
+      } else {
+          rank = 5;
+          progressPercentage = Math.floor(((user.eucalyptus_score - 2500) / 500) * 100);
+      }
+
+      return res.status(200).json({
+          status: 200,
+          message: '내 정보 조회 성공',
+          data: {
+              last_name: user.last_name,
+              first_name: user.first_name,
+              rank: rank,
+              progress_to_next_grade: progressPercentage
+          }
+      });
+  } catch (error) {
+      return res.status(500).json({
+          status: 500,
+          message: '서버 에러 발생'
+      });
+  }
+};

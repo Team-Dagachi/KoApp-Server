@@ -24,4 +24,7 @@ router.post('/verify-code', users.verifyCode);
 // 비밀번호 재설정
 router.post('/reset-password', users.resetPassword);
 
+// 내 정보 조회
+router.get('/:user_id', authenticateToken, users.getUserProfile);
+
 module.exports = router;
