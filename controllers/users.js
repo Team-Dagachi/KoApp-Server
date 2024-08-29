@@ -18,7 +18,7 @@ const createToken = (user) => {
 // 회원가입
 exports.signup = async (req, res) => {
   try {
-    const { user_type, language, last_name, first_name, user_pwd, confirmPwd, email, phone_num } = req.body;
+    const { user_type, last_name, first_name, user_pwd, confirmPwd, email, phone_num } = req.body;
 
     if (!last_name || !first_name || !user_pwd || !confirmPwd || !email) {
       return res.status(400).json({ message: '필수 입력값이 누락되었습니다.' });
@@ -43,7 +43,6 @@ exports.signup = async (req, res) => {
     // 유저 생성
     const newUser = await User.create({
       user_type,
-      language,
       last_name,
       first_name,
       user_pwd,
@@ -230,7 +229,7 @@ exports.verifyCode = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const { resetToken, newPwd, confirmPwd } = req.body;
-    
+
     // 토큰 검증
     const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
     const user = await User.findOne({ where: { user_id: decoded.user_id } });

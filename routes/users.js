@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const users = require('../controllers/users');
+const { authenticateToken } = require('../middlewares/jwt');
 
 // 회원가입
 router.post('/signup', users.signup);

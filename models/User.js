@@ -17,7 +17,7 @@ class User extends Sequelize.Model {
         },
         language: {
           type: Sequelize.ENUM("VN", "CN", "KR"),
-          allowNull: false,
+          allowNull: true,
         },
         last_name: {
           type: Sequelize.STRING(50),
@@ -49,6 +49,10 @@ class User extends Sequelize.Model {
           type: Sequelize.STRING(255),
           allowNull: true,
         },
+        eucalyptus_score: {
+          type: Sequelize.INTEGER,
+          allowNull: true,
+        },
       },
       {
         sequelize,
@@ -76,6 +80,20 @@ class User extends Sequelize.Model {
         },
       }
     );
+  }
+  static associate(models) {
+    this.hasMany(models.Program, { foreignKey: 'user_id', sourceKey: 'user_id' }); // 선생님이 생성한 프로그램
+    this.hasMany(models.Attendance, { foreignKey: 'user_id', sourceKey: 'user_id' });
+    this.hasMany(models.Push, { foreignKey: 'user_id', sourceKey: 'user_id' });
+    this.hasMany(models.LearnedWord, { foreignKey: 'user_id', sourceKey: 'user_id' });
+    this.hasMany(models.Submission, { foreignKey: 'user_id', sourceKey: 'user_id' });
+    this.belongsToMany(models.Program, {
+      through: 'StudentProgram',
+      foreignKey: 'user_id',
+      otherKey: 'program_id',
+    });
+    this.hasMany(models.TaskSubmission, { foreignKey: 'user_id', sourceKey: 'user_id' });
+    this.hasMany(models.Submission, { foreignKey: 'user_id', sourceKey: 'user_id' });
   }
 }
 
